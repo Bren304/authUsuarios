@@ -1,5 +1,5 @@
 from config.connection import db
-from sqlalchemy import relationship
+from sqlalchemy.orm import relationship
 
 class Role(db.Model):
     __tablename__ = 'roles'

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from config.connection import db
-from models import User
+from models import users
 import jwt
 import datetime
 import os
@@ -13,14 +13,14 @@ def register():
     data = request.get_json()
 
     # Verificar si ya existe un usuario con el mismo email o username
-    if User.query.filter_by(email=data['email']).first():
+    if users.query.filter_by(email=data['email']).first():
         return jsonify({"error": "Email ya registrado"}), 400
 
-    if User.query.filter_by(username=data['username']).first():
+    if users.query.filter_by(username=data['username']).first():
         return jsonify({"error": "Username ya en uso"}), 400
 
     # Crear nuevo usuario
-    user = User(
+    user = users(
         dni=data['dni'],
         username=data['username'],
         email=data['email'],
@@ -39,7 +39,7 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
+    user = users.query.filter_by(email=data['email']).first()
 
     if not user or not user.check_password(data['password']):
         return jsonify({"error": "Credenciales inválidas"}), 401

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from config.connection import db
-from models import User
-from middleware import token_required
+from models import users
+from middleware.authMiddleware import token_required
 
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
 
@@ -10,7 +10,7 @@ user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
 @token_required
 @user_bp.route('/', methods=['GET'])
 def get_users():
-    users = User.query.all()
+    users = users.query.all()
     return jsonify([
         {
             "id": u.id,
@@ -30,7 +30,7 @@ def get_users():
 @token_required
 @user_bp.route('/<int:user_id>', methods=['GET'])
 def get_user(user_id):
-    user = User.query.get(user_id)
+    user = users.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -51,13 +51,13 @@ def get_user(user_id):
 def create_user():
     data = request.get_json()
 
-    if User.query.filter_by(email=data["email"]).first():
+    if users.query.filter_by(email=data["email"]).first():
         return jsonify({"error": "El correo ya está registrado"}), 400
 
-    if User.query.filter_by(username=data["username"]).first():
+    if users.query.filter_by(username=data["username"]).first():
         return jsonify({"error": "El username ya está en uso"}), 400
 
-    user = User(
+    user = users(
         dni=data["dni"],
         username=data["username"],
         email=data["email"],
@@ -75,7 +75,7 @@ def create_user():
 # Editar usuario
 @user_bp.route('/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    user = User.query.get(user_id)
+    user = users.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -93,7 +93,7 @@ def update_user(user_id):
 # Cambiar estado (activar / desactivar)
 @user_bp.route('/<int:user_id>/state', methods=['PATCH'])
 def change_state(user_id):
-    user = User.query.get(user_id)
+    user = users.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -107,7 +107,7 @@ def change_state(user_id):
 @token_required
 @user_bp.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    user = User.query.get(user_id)
+    user = users.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 

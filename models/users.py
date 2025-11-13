@@ -1,6 +1,5 @@
 from config.connection import db
-import roles
-from sqlalchemy import relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy import *
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -16,7 +15,7 @@ class User(db.Model):
     state = db.Column(db.Boolean, default=True, nullable=False)
 
     # Relación con la tabla Roles
-    fk_role = db.Column(db.Integer, ForeignKey(roles.id), nullable=False, default='1')
+    fk_role = db.Column(db.Integer, ForeignKey('roles.id'), nullable=False, default='1')
 
     role = relationship('Role', back_populates='users')
 
