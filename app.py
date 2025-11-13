@@ -1,7 +1,7 @@
 from flask import Flask
-from config.connection import init_app, db
-from controllers import auth_bp
-from controllers import user_bp
+from config.connection import db, init_app
+from controllers import authController
+from controllers import userController
 import os
 from dotenv import load_dotenv
 
@@ -19,8 +19,8 @@ def create_app():
     init_app(app)
 
     # Registrar rutas (Blueprints)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(user_bp)
+    app.register_blueprint(authController.auth_bp)
+    app.register_blueprint(userController.user_bp)
 
     # Crear tablas automáticamente si no existen
     with app.app_context():
