@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from config.connection import db
+from middleware.authMiddleware import token_required
 from models.users import User
 import jwt
 import datetime
