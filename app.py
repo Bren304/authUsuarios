@@ -22,6 +22,8 @@ def create_app():
     app.register_blueprint(authController.auth_bp)
     app.register_blueprint(userController.user_bp)
 
+    from models import users, roles
+
     # Crear tablas automáticamente si no existen
     with app.app_context():
         db.create_all()
