@@ -5,6 +5,8 @@ from controllers import userController
 import os
 from dotenv import load_dotenv
 
+from middleware.authMiddleware import token_required
+
 load_dotenv()
 
 def create_app():
@@ -43,8 +45,9 @@ def create_app():
         return render_template('register.html')
     
     @app.route('/dashboard')
+    @token_required
     def dashboard():
-        return "Dashboard - ¡Funciona el login!"  # Temporal
+        return render_template('dashboard.html')
     
     with app.app_context():
         db.create_all()

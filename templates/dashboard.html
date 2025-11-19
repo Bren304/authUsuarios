@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Mi App{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <h1>Dashboard</h1>
+            <div class="user-info">
+                <span id="user-welcome">Bienvenido, </span>
+                <div class="user-actions">
+                    <button onclick="viewProfile()" class="btn-secondary">Mi Perfil</button>
+                    <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-info">
+                    <h3 id="user-username">-</h3>
+                    <p>Usuario</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📧</div>
+                <div class="stat-info">
+                    <h3 id="user-email">-</h3>
+                    <p>Email</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-info">
+                    <h3 id="user-role">-</h3>
+                    <p>Rol</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🆔</div>
+                <div class="stat-info">
+                    <h3 id="user-dni">-</h3>
+                    <p>DNI</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de acciones rápidas -->
+        <div class="actions-section">
+            <h2>Acciones Rápidas</h2>
+            <div class="actions-grid">
+                <button onclick="viewProfile()" class="action-btn">
+                    <div class="action-icon">👤</div>
+                    <span>Ver Perfil</span>
+                </button>
+                
+                <button onclick="manageUsers()" class="action-btn">
+                    <div class="action-icon">👥</div>
+                    <span>Gestionar Usuarios</span>
+                </button>
+                
+                <button onclick="viewSettings()" class="action-btn">
+                    <div class="action-icon">⚙️</div>
+                    <span>Configuración</span>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal de Perfil -->
+<div id="profileModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Mi Perfil</h2>
+            <button onclick="closeModal('profileModal')" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="profile-info">
+                <div class="info-item">
+                    <label>ID:</label>
+                    <span id="profile-id">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Username:</label>
+                    <span id="profile-username">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Email:</label>
+                    <span id="profile-email">-</span>
+                </div>
+                <div class="info-item">
+                    <label>DNI:</label>
+                    <span id="profile-dni">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Teléfono:</label>
+                    <span id="profile-phone">-</span>
+                </div>
+                <div class="info-item">
+                    <label>Rol:</label>
+                    <span id="profile-role">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alert-container" class="alert-container"></div>
+{% endblock %}

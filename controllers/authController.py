@@ -57,3 +57,9 @@ def login():
             "role": user.role.name if user.role else None
         }
     }), 200
+
+# En authController.py
+@auth_bp.route('/logout', methods=['POST'])
+@token_required
+def logout():    
+    return jsonify({"message": "Sesión cerrada exitosamente"}), 200
