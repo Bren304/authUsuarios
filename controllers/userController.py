@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from config.connection import db
-from models import users
+from models.users import User
 from middleware.authMiddleware import token_required
 
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
@@ -10,7 +10,8 @@ user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
 @token_required
 @user_bp.route('/', methods=['GET'])
 def get_users():
-    users = users.query.all()
+    # ✅ Cambiar 'users' por 'all_users' para evitar conflicto
+    all_users = User.query.all()
     return jsonify([
         {
             "id": u.id,
@@ -20,9 +21,9 @@ def get_users():
             "phone": u.phone,
             "state": u.state,
             "role": u.role.name if u.role else None,
-            "created_at": u.created_at
+            "created_at": u.created_at.isoformat() if u.created_at else None
         }
-        for u in users
+        for u in all_users
     ]), 200
 
 
@@ -30,7 +31,7 @@ def get_users():
 @token_required
 @user_bp.route('/<int:user_id>', methods=['GET'])
 def get_user(user_id):
-    user = users.query.get(user_id)
+    user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -42,7 +43,7 @@ def get_user(user_id):
         "phone": user.phone,
         "state": user.state,
         "role": user.role.name if user.role else None,
-        "created_at": user.created_at
+        "created_at": user.created_at.isoformat() if user.created_at else None
     }), 200
 
 
@@ -51,13 +52,13 @@ def get_user(user_id):
 def create_user():
     data = request.get_json()
 
-    if users.query.filter_by(email=data["email"]).first():
+    if User.query.filter_by(email=data["email"]).first():
         return jsonify({"error": "El correo ya está registrado"}), 400
 
-    if users.query.filter_by(username=data["username"]).first():
+    if User.query.filter_by(username=data["username"]).first():
         return jsonify({"error": "El username ya está en uso"}), 400
 
-    user = users(
+    user = User(
         dni=data["dni"],
         username=data["username"],
         email=data["email"],
@@ -75,7 +76,7 @@ def create_user():
 # Editar usuario
 @user_bp.route('/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    user = users.query.get(user_id)
+    user = User.query.get(user_id)  # ✅ Usar 'User' en lugar de 'users'
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -93,7 +94,7 @@ def update_user(user_id):
 # Cambiar estado (activar / desactivar)
 @user_bp.route('/<int:user_id>/state', methods=['PATCH'])
 def change_state(user_id):
-    user = users.query.get(user_id)
+    user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
@@ -103,11 +104,11 @@ def change_state(user_id):
     return jsonify({"message": f"Usuario {'activado' if user.state else 'desactivado'}"}), 200
 
 
-# Eliminar usuario (Soft delete recomendado)
+# Eliminar usuario
 @token_required
 @user_bp.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    user = users.query.get(user_id)
+    user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
