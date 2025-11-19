@@ -10,7 +10,6 @@ user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
 @token_required
 @user_bp.route('/', methods=['GET'])
 def get_users():
-    # ✅ Cambiar 'users' por 'all_users' para evitar conflicto
     all_users = User.query.all()
     return jsonify([
         {
@@ -20,8 +19,7 @@ def get_users():
             "email": u.email,
             "phone": u.phone,
             "state": u.state,
-            "role": u.role.name if u.role else None,
-            "created_at": u.created_at.isoformat() if u.created_at else None
+            "role": u.role.name if u.role else None
         }
         for u in all_users
     ]), 200
@@ -42,8 +40,7 @@ def get_user(user_id):
         "email": user.email,
         "phone": user.phone,
         "state": user.state,
-        "role": user.role.name if user.role else None,
-        "created_at": user.created_at.isoformat() if user.created_at else None
+        "role": user.role.name if user.role else None
     }), 200
 
 
