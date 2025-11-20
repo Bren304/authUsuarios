@@ -89,20 +89,82 @@ async function handleLogin(event) {
     }
 }
 
-// Inicializar eventos cuando el DOM esté listo
+// Inicialización mejorada
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Aplicación inicializando...');
+    
     const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    
     if (loginForm) {
+        console.log('Formulario de login encontrado');
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Verificar si ya está autenticado
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-        // Redirigir si ya está logueado
-        window.location.href = '/dashboard';
+    if (registerForm) {
+        console.log('Formulario de registro encontrado');
+        registerForm.addEventListener('submit', handleRegister);
+    }
+    
+    // Verificar autenticación en páginas protegidas
+    if (window.location.pathname === '/dashboard') {
+        console.log('Página dashboard detectada');
+        
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            console.log('No hay token, redirigiendo a login');
+            window.location.href = '/login';
+            return;
+        }
+        
+        // Verificar token con el backend
+        verifyTokenWithBackend(token)
+            .then(isValid => {
+                if (isValid) {
+                    console.log('Token válido, cargando dashboard');
+                    loadUserData();
+                } else {
+                    console.log('Token inválido, redirigiendo');
+                    logout();
+                }
+            })
+            .catch(error => {
+                console.log('Error verificando token:', error);
+                logout();
+            });
+    }
+    
+    // Redirigir desde login/register si ya está autenticado
+    if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            console.log('Ya autenticado, redirigiendo a dashboard');
+            window.location.href = '/dashboard';
+        }
     }
 });
+
+// Verificar token con backend
+async function verifyTokenWithBackend(token) {
+    try {
+        const response = await fetch('/auth/verify-token', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.valid === true;
+        }
+        return false;
+    } catch (error) {
+        console.log('❌ Error en verificación:', error);
+        return false;
+    }
+}
 
 // Dashboard Functions
 function loadUserData() {
@@ -274,11 +336,100 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // En auth.js falta manejar cuando el token expira
+// En auth.js - REEMPLAZA la función de verificación
 function checkAuth() {
     const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
+    
+    console.log('Verificando autenticación...');
+    console.log('Token en localStorage:', token ? '✅ Existe' : '❌ No existe');
+    console.log('User data en localStorage:', userData ? '✅ Existe' : '❌ No existe');
+    
     if (!token) {
-        window.location.href = '/login';
+        console.log('No hay token, redirigiendo a login');
+        // Solo redirigir si no estamos ya en login/register
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+            window.location.href = '/login';
+        }
         return false;
     }
-    return true;
+    
+    // Verificar si el token es válido (estructura básica)
+    try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+            console.log('Token con formato inválido');
+            logout();
+            return false;
+        }
+        
+        console.log('Token válido encontrado');
+        return true;
+    } catch (error) {
+        console.log('Error verificando token:', error);
+        logout();
+        return false;
+    }
+}
+
+// Función logout mejorada
+async function logout() {
+    console.log('Cerrando sesión...');
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            await fetch('/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    } catch (error) {
+        console.log('Error en logout del backend:', error);
+    } finally {
+        // Siempre limpiar el frontend
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        sessionStorage.clear();
+        
+        console.log('Sesión cerrada, redirigiendo...');
+        window.location.href = '/login';
+    }
+}
+
+// Cargar datos del usuario en el dashboard
+function loadUserData() {
+    console.log('Cargando datos del usuario...');
+    
+    try {
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        console.log('Datos del usuario:', userData);
+        
+        if (!userData.id) {
+            console.log('No hay datos de usuario válidos');
+            logout();
+            return;
+        }
+        
+        // Actualizar UI con datos del usuario
+        const welcomeElement = document.getElementById('user-welcome');
+        if (welcomeElement) {
+            welcomeElement.textContent = `Bienvenido, ${userData.username || 'Usuario'}`;
+        }
+        
+        document.getElementById('user-username').textContent = userData.username || '-';
+        document.getElementById('user-email').textContent = userData.email || '-';
+        document.getElementById('user-role').textContent = userData.role || '-';
+        document.getElementById('user-dni').textContent = userData.dni || '-';
+        
+        console.log('Datos del usuario cargados en UI');
+        
+    } catch (error) {
+        console.log('Error cargando datos del usuario:', error);
+        logout();
+    }
 }
