@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from config.connection import db
+from middleware.authMiddleware import token_required
 from models.users import User
 import jwt
 import datetime
@@ -12,7 +13,7 @@ auth_bp = Blueprint('auth_bp', __name__, url_prefix='/auth')
 def register():
     try:
         data = request.get_json()
-        print(f"📨 Datos recibidos: {data}")  # Debug
+        print(f"📨 Datos recibidos: {data}") # Debug
 
         # Verificar si ya existe
         existing_email = User.query.filter_by(email=data['email']).first()
@@ -142,3 +143,29 @@ def login():
         db.session.close()  # CERRAR SESIÓN SIEMPRE
     
     return response
+
+@auth_bp.route('/verify-token', methods=['POST'])
+@token_required
+def verify_token():
+    """Verificar si el token es válido"""
+    try:
+        # Si llegamos aquí, el token es válido (pasó el middleware)
+        user = getattr(request, 'user', None)
+        if user:
+            return jsonify({
+                "valid": True,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "role": user.role.name if user.role else None
+                }
+            }), 200
+        else:
+            return jsonify({"valid": False, "error": "Usuario no encontrado"}), 401
+    except Exception as e:
+        return jsonify({"valid": False, "error": str(e)}), 401
+
+# Función helper para obtener el usuario del token
+def get_current_user():
+    return getattr(request, 'user', None)
